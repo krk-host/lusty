@@ -14,7 +14,7 @@ ADMIN_IDS = [8100764265, 2083057195]
 ADMIN_ID = ADMIN_IDS[0]
 
 # --- СЕТЕВЫЕ И ВЕБ ПАРАМЕТРЫ ---
-WEB_PORT = 8080
+WEB_PORT = 3000
 WEB_HOST = "0.0.0.0" 
 DB_NAME = "dragon_core_v7.db"
 
