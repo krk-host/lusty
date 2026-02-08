@@ -1,0 +1,13 @@
+
+telethon
+fastapi
+uvicorn
+jinja2
+sqlalchemy
+colorama
+
+cryptography
+aiosqlite
+
+aiohttp
+python-multipart

@@ -1,0 +1,221 @@
+--- START OF FILE dragono/templates/editor.html ---
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Dragon Editor • {{ current_filename }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap');
+        
+        body { 
+            background: #0f0f12; 
+            color: #d4d4d4; 
+            font-family: 'Segoe UI', sans-serif;
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* Sidebar Explorer */
+        .explorer {
+            width: 260px;
+            background: #18181b;
+            border-right: 1px solid #27272a;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .file-item {
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: 0.1s;
+            color: #a1a1aa;
+        }
+        .file-item:hover { background: #27272a; color: #fff; }
+        .file-active { 
+            background: #27272a; 
+            color: #60a5fa !important; 
+            border-left: 2px solid #60a5fa; 
+        }
+
+        /* Editor Area */
+        .editor-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #09090b;
+        }
+
+        .tabs-bar {
+            height: 35px;
+            background: #18181b;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #27272a;
+        }
+
+        .tab {
+            padding: 0 20px;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            background: #09090b;
+            font-size: 12px;
+            border-right: 1px solid #27272a;
+            color: #fff;
+        }
+
+        .code-area {
+            flex: 1;
+            position: relative;
+            display: flex;
+        }
+
+        .line-numbers {
+            width: 45px;
+            background: #09090b;
+            color: #3f3f46;
+            text-align: right;
+            padding-right: 10px;
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            padding-top: 10px;
+            user-select: none;
+            border-right: 1px solid #18181b;
+        }
+
+        textarea {
+            flex: 1;
+            background: transparent;
+            color: #9cdcfe;
+            border: none;
+            outline: none;
+            resize: none;
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            padding: 10px;
+            white-space: pre;
+            overflow-wrap: normal;
+            overflow-x: auto;
+        }
+
+        /* Status Bar */
+        .statusbar {
+            height: 25px;
+            background: #2563eb;
+            color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 15px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .save-btn {
+            background: #2563eb;
+            padding: 8px 24px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 12px;
+            transition: 0.2s;
+        }
+        .save-btn:hover { background: #3b82f6; transform: translateY(-1px); }
+    </style>
+</head>
+<body>
+
+    <!-- FILE EXPLORER -->
+    <aside class="explorer">
+        <div class="p-4 border-bottom border-gray-800">
+            <h2 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Vault Explorer</h2>
+        </div>
+        <div class="flex-1 overflow-y-auto pt-2">
+            {% for key, fname in file_map.items() %}
+            <a href="/editor?filename={{ fname }}" class="file-item {% if fname == current_filename %}file-active{% endif %}">
+                <i class="far fa-file-alt"></i>
+                <span>{{ fname }}</span>
+            </a>
+            {% endfor %}
+        </div>
+        <div class="p-4 bg-black/20">
+            <a href="/" class="text-xs text-gray-400 hover:text-white flex items-center gap-2">
+                <i class="fas fa-arrow-left"></i> Return to Dashboard
+            </a>
+        </div>
+    </aside>
+
+    <!-- EDITOR AREA -->
+    <form action="/save_file" method="post" class="editor-main">
+        <input type="hidden" name="filename" value="{{ current_filename }}">
+        
+        <div class="tabs-bar">
+            <div class="tab">
+                <i class="fas fa-terminal mr-2 text-blue-400 text-[10px]"></i>
+                {{ current_filename }}
+            </div>
+            <div class="flex-1"></div>
+            <button type="submit" class="save-btn mr-4">
+                <i class="fas fa-save mr-2"></i> SAVE CHANGES
+            </button>
+        </div>
+
+        <div class="code-area">
+            <div class="line-numbers" id="lineNumbers">
+                1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9<br>10
+            </div>
+            <textarea name="content" spellcheck="false" id="editorTextarea" oninput="updateLineNumbers()">{{ content }}</textarea>
+        </div>
+
+        <div class="statusbar">
+            <div class="flex gap-4">
+                <span><i class="fas fa-code-branch mr-1"></i> main</span>
+                <span>UTF-8</span>
+            </div>
+            <div class="flex gap-4">
+                <span id="charCount">Chars: {{ content|length }}</span>
+                <span>Python / SaaS</span>
+            </div>
+        </div>
+    </form>
+
+    <script>
+        const textarea = document.getElementById('editorTextarea');
+        const lineNumbers = document.getElementById('lineNumbers');
+        const charCount = document.getElementById('charCount');
+
+        function updateLineNumbers() {
+            const lines = textarea.value.split('\n').length;
+            let lineStr = '';
+            for (let i = 1; i <= lines; i++) {
+                lineStr += i + '<br>';
+            }
+            lineNumbers.innerHTML = lineStr;
+            charCount.innerText = "Chars: " + textarea.value.length;
+        }
+
+        // Поддержка Tab в textarea
+        textarea.addEventListener('keydown', function(e) {
+            if (e.key == 'Tab') {
+                e.preventDefault();
+                var start = this.selectionStart;
+                var end = this.selectionEnd;
+                this.value = this.value.substring(0, start) + "\t" + this.value.substring(end);
+                this.selectionStart = this.selectionEnd = start + 1;
+            }
+        });
+
+        // Инициализация
+        updateLineNumbers();
+    </script>
+</body>
+</html>

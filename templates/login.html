@@ -1,0 +1,191 @@
+--- START OF FILE dragono/templates/login.html ---
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Dragon Core • Identity</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;500;700;900&display=swap');
+        
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'SF Pro Display', -apple-system, sans-serif;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Deep Liquid Background Animation */
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 0;
+            opacity: 0.6;
+            animation: breathe 10s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .orb-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: #2563eb; } /* Blue */
+        .orb-2 { bottom: -10%; right: -10%; width: 50vw; height: 50vw; background: #7c3aed; animation-delay: -5s; } /* Violet */
+        .orb-3 { top: 40%; left: 40%; width: 30vw; height: 30vw; background: #06b6d4; animation-delay: -2s; opacity: 0.4; } /* Cyan */
+
+        @keyframes breathe {
+            0% { transform: scale(1) translate(0,0); }
+            100% { transform: scale(1.1) translate(20px, -20px); }
+        }
+
+        /* Grain Texture */
+        .grain-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+            z-index: 1; pointer-events: none;
+        }
+
+        /* Glass Panel */
+        .glass-panel {
+            position: relative; z-index: 10;
+            background: rgba(20, 20, 22, 0.6);
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 2rem;
+            width: 400px;
+            padding: 3rem;
+            box-shadow: 0 40px 80px -20px rgba(0,0,0,0.7);
+        }
+
+        /* Inputs */
+        input {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 1rem;
+            border-radius: 1rem;
+            width: 100%;
+            margin-bottom: 1rem;
+            outline: none;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+        input:focus {
+            background: rgba(0, 0, 0, 0.5);
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+        }
+        input::placeholder { color: rgba(255,255,255,0.3); }
+
+        /* Buttons */
+        .btn-action {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            width: 100%;
+            padding: 1rem;
+            border-radius: 1rem;
+            font-weight: 700;
+            font-size: 14px;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.4);
+            transition: transform 0.1s, box-shadow 0.2s;
+        }
+        .btn-action:hover { box-shadow: 0 15px 30px -5px rgba(37, 99, 235, 0.6); transform: translateY(-1px); }
+        .btn-action:active { transform: scale(0.98); }
+
+        /* Tabs */
+        .tabs { display: flex; background: rgba(255,255,255,0.05); border-radius: 1rem; padding: 4px; margin-bottom: 2rem; }
+        .tab-item {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #888;
+            cursor: pointer;
+            transition: 0.3s;
+            border-radius: 0.8rem;
+        }
+        .tab-active { background: rgba(255,255,255,0.1); color: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        
+        .hidden { display: none; }
+        .error-msg { color: #f87171; font-size: 12px; text-align: center; margin-bottom: 10px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="grain-overlay"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <div class="glass-panel">
+        <div class="text-center mb-8">
+            <div class="w-12 h-12 bg-gradient-to-tr from-blue-500 to-purple-600 rounded-xl mx-auto mb-4 flex items-center justify-center shadow-lg shadow-blue-900/40">
+                <span class="text-xl">🐉</span>
+            </div>
+            <h1 class="text-3xl font-black italic tracking-tighter uppercase mb-1">Dragon Core</h1>
+            <p class="text-[10px] text-gray-500 font-mono tracking-[0.2em] uppercase">Private SaaS Vault</p>
+        </div>
+
+        <div class="tabs">
+            <div id="btn-login" class="tab-item tab-active" onclick="switchTab('login')">LOGIN</div>
+            <div id="btn-reg" class="tab-item" onclick="switchTab('register')">CREATE ID</div>
+        </div>
+
+        <!-- ERROR HANDLING via URL PARAMS -->
+        <div id="error-box" class="error-msg hidden"></div>
+
+        <!-- Login Form -->
+        <form id="form-login" action="/login" method="post">
+            <input type="text" name="username" placeholder="Username" autocomplete="off" required>
+            <input type="password" name="password" placeholder="Password" autocomplete="off" required>
+            <div class="flex justify-between items-center mb-6 mt-4 px-1">
+                <span class="text-[10px] text-gray-500 uppercase font-bold tracking-widest cursor-pointer hover:text-white transition">Lost Access?</span>
+            </div>
+            <button type="submit" class="btn-action text-white">Unlock Vault</button>
+        </form>
+
+        <!-- Register Form -->
+        <form id="form-reg" action="/register" method="post" class="hidden">
+            <input type="text" name="username" placeholder="New Username" autocomplete="off" required>
+            <input type="password" name="password" placeholder="Set Master Key" autocomplete="off" required>
+            <p class="text-[10px] text-gray-500 mb-6 text-center leading-4 px-2 mt-4">
+                By creating an ID, a secure isolated container (Vault) will be allocated on the server.
+            </p>
+            <button type="submit" class="btn-action text-white bg-gradient-to-br from-green-500 to-emerald-700 shadow-green-900/50">Initialize Container</button>
+        </form>
+    </div>
+
+    <script>
+        function switchTab(mode) {
+            const login = document.getElementById('form-login');
+            const reg = document.getElementById('form-reg');
+            const btnL = document.getElementById('btn-login');
+            const btnR = document.getElementById('btn-reg');
+
+            if(mode === 'login') {
+                login.classList.remove('hidden'); reg.classList.add('hidden');
+                btnL.classList.add('tab-active'); btnR.classList.remove('tab-active');
+            } else {
+                login.classList.add('hidden'); reg.classList.remove('hidden');
+                btnL.classList.remove('tab-active'); btnR.classList.add('tab-active');
+            }
+        }
+
+        // Parse URL params for errors
+        const urlParams = new URLSearchParams(window.location.search);
+        const error = urlParams.get('error');
+        const box = document.getElementById('error-box');
+        
+        if (error) {
+            box.classList.remove('hidden');
+            if (error === 'invalid_credentials') box.innerText = "❌ Invalid Credentials";
+            else if (error === 'user_exists') box.innerText = "⚠️ Username already exists";
+            else box.innerText = "❌ Access Denied";
+        }
+    </script>
+</body>
+</html>
